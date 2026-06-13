@@ -66,3 +66,5 @@ Recommended settings (RTX 6000 Pro / RTX 5090)
 - **Fan speed 55%**: tested to keep the GPU under 70°C at ~28°C ambient
   (typical Bay Area room temperature). Noise is not noticeable below 60%,
   but becomes noisy above 75%.
+
+Noise: 50 series GPU is quite when fan speed < 60, you will get some notise when speed hits 75, and becomes noisy when speed reaches 80-90. When fan speed is sets to auto, usually the fan speed is around 50 under pretrain workload and normal air cooling env.  
