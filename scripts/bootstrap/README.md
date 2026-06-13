@@ -18,7 +18,7 @@ bash install_cuda_container_kit.sh  # nvidia-container-toolkit + runtime + smoke
 Each takes env overrides (`CUDA_VERSION`, `CUDA_MAJOR`, `CUDA_DISTRO`, `CUDA_IMAGE`).
 
 `check_env.py` reports the torch/CUDA/cuDNN/NCCL stack, per-GPU compute capability, driver
-and nvcc versions, and saves them to `check_env.txt`; `run_nccl_test.sh` + `test_nccl.py`
+and nvcc versions, and saves them to `env.txt`; `run_nccl_test.sh` + `test_nccl.py`
 validate multi-GPU NCCL.
 
 ## Verify
@@ -29,6 +29,23 @@ nvcc -V                                  # CUDA toolkit version
 dpkg -l | grep -E 'cudnn|nccl'           # cuDNN / NCCL
 uv run python check_env.py               # torch/CUDA/cuDNN/NCCL + per-GPU sm
 uv run bash run_nccl_test.sh              # PyTorch + NCCL multi-GPU all-reduce
+```
+
+Example `check_env.py` output (2× RTX 5060 Ti dev box):
+
+```
+=== Torch / CUDA stack ===
+torch          : 2.12.0+cu130
+cuda available : True
+torch cuda     : 13.0
+cudnn enabled  : True
+cudnn version  : 92000
+nccl version   : 2.29.7
+device count   : 2
+  gpu 0        : NVIDIA GeForce RTX 5060 Ti (sm_120)
+  gpu 1        : NVIDIA GeForce RTX 5060 Ti (sm_120)
+driver version : 580.126.20
+nvcc cuda      : 13.0
 ```
 
 ## nvidia-smi diagnostics

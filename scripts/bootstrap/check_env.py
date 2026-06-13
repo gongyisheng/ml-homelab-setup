@@ -4,7 +4,7 @@ Reports torch, CUDA, cuDNN, NCCL versions, per-GPU name + compute capability, pl
 driver version (nvidia-smi) and CUDA toolkit version (nvcc). Output is printed and saved
 to a txt file.
 
-    python3 check_env.py                 # saves to check_env.txt next to this script
+    python3 check_env.py                 # saves to env.txt next to this script
     python3 check_env.py /tmp/env.txt    # custom path
 """
 import re
@@ -69,6 +69,6 @@ nvcc = run(["nvcc", "--version"])
 nvcc_rel = re.search(r"release ([\d.]+)", nvcc).group(1) if nvcc and "release" in nvcc else None
 out(f"nvcc cuda      : {fmt(nvcc_rel)}")
 
-out_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent / "check_env.txt"
+out_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent / "env.txt"
 out_path.write_text("\n".join(_lines) + "\n")
 print(f"\nsaved -> {out_path}")
