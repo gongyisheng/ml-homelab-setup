@@ -7,9 +7,14 @@ sudo python3 gpu_power.py 300           # all GPUs, 300W
 sudo python3 gpu_power.py 300 --gpu 0   # GPU 0 only
 sudo python3 gpu_power.py 300 --gpu 0,1 # GPUs 0 and 1
 sudo python3 gpu_power.py default       # restore driver default
+sudo -E python3 gpu_power.py            # use GPU_POWER_CAP_W from .env / env
+
+Watts defaults to $GPU_POWER_CAP_W (from scripts/gpu/.env) when not given on the CLI.
 """
 import argparse
+import os
 import sys
+from pathlib import Path
 from pynvml import (
     nvmlInit,
     nvmlShutdown,
@@ -34,6 +39,18 @@ def parse_watts(arg: str) -> int | None:
     return value
 
 
+def load_dotenv(path: Path) -> None:
+    """Populate os.environ from a KEY=VALUE file. Existing env vars take precedence."""
+    if not path.is_file():
+        return
+    for raw in path.read_text().splitlines():
+        line = raw.split("#", 1)[0].strip()
+        if not line or "=" not in line:
+            continue
+        key, _, val = line.partition("=")
+        os.environ.setdefault(key.strip(), val.strip().strip('"').strip("'"))
+
+
 def parse_gpus(arg: str | None, total: int) -> list[int]:
     if arg is None:
         return list(range(total))
@@ -46,15 +63,23 @@ def parse_gpus(arg: str | None, total: int) -> list[int]:
 
 def main() -> int:
     parser = argparse.ArgumentParser(description="Set NVIDIA GPU power limit via NVML.")
-    parser.add_argument("watts", help="power limit in watts (e.g. 300), or 'default' to restore")
+    parser.add_argument(
+        "watts", nargs="?",
+        help="power limit in watts (e.g. 300), or 'default'. Falls back to $GPU_POWER_CAP_W.",
+    )
     parser.add_argument(
         "--gpu",
         help="comma-separated GPU indices (e.g. 0 or 0,1). Defaults to all GPUs.",
     )
     args = parser.parse_args()
 
+    load_dotenv(Path(__file__).resolve().parent / ".env")
+    watts = args.watts if args.watts is not None else os.environ.get("GPU_POWER_CAP_W")
+    if watts is None:
+        parser.error("no watts given and GPU_POWER_CAP_W not set (CLI arg or scripts/gpu/.env)")
+
     try:
-        target_w = parse_watts(args.watts)
+        target_w = parse_watts(watts)
     except ValueError as e:
         parser.error(str(e))
 
