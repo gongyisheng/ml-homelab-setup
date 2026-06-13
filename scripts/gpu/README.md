@@ -32,7 +32,21 @@ SMTP_PASSWORD=abcd efgh ijkl mnop   # 16-char app password (spaces optional)
 SMTP_TO=you@gmail.com
 ```
 
-## Power Control and Cooling
+### GPU Idle Monitoring
+
+`gpu_idle_alert.sh` flags a GPU as idle only when **every** sample over a window stays
+at/below the threshold. Recommend **util ≤ 5% for 10 min** — a one-shot check fires false
+positives on brief lulls between batches. Window = `GPU_IDLE_SAMPLES` × `GPU_IDLE_INTERVAL`
+(defaults give 10 min):
+
+```bash
+# scripts/gpu/.env
+GPU_IDLE_UTIL_THRESHOLD=5   # % at/below which a GPU counts as idle
+GPU_IDLE_SAMPLES=60         # all samples must be idle
+GPU_IDLE_INTERVAL=10        # seconds between samples → 60 × 10s = 10 min
+```
+
+### Power Control and Cooling
 
 install dependency use following command:
 ```bash
@@ -43,11 +57,10 @@ run with following command
 
 ```bash
 sudo python3 scripts/gpu/gpu_fans.py 55
-sudo python3 scripts/gpu/gpu_power.py 400 --gpu 0  # explicit value still overrides
+sudo python3 scripts/gpu/gpu_power.py 400 --gpu 0
 ```
 
-### Recommended settings (RTX 6000 Pro / RTX 5090)
-
+Recommended settings (RTX 6000 Pro / RTX 5090)  
 - **Power cap 400W**: only ~10% performance loss, but runs much safer and cooler.
   Strongly recommended over the stock limit for sustained loads.
 - **Fan speed 55%**: tested to keep the GPU under 70°C at ~28°C ambient
