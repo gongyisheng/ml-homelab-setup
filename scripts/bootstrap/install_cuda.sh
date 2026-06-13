@@ -2,7 +2,6 @@
 # Install CUDA toolkit (default 13.0 for sm_120 Blackwell). Requires the cuda-keyring
 # repo added by install_driver.sh.
 #   bash install_cuda.sh                 # cuda-toolkit-13-0
-#   CUDA_VERSION=12.8 bash install_cuda.sh
 set -euo pipefail
 
 CUDA_VERSION="${CUDA_VERSION:-13.0}"

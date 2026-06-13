@@ -18,10 +18,13 @@ Each test prints `PASS` / `FAIL`, or `SKIP` with an install hint if the backend 
 
 ## Run
 
+Needs the `kernel` extra: `uv sync --extra kernel` (installs FlashInfer + ninja). `uv run`
+puts ninja on PATH so FlashInfer's JIT works.
+
 ```bash
-CUDA_VISIBLE_DEVICES=1 python3 test_sdpa.py
-CUDA_VISIBLE_DEVICES=1 python3 test_flashinfer.py
-CUDA_VISIBLE_DEVICES=1 python3 bench_attention.py --seqlens 512,1024,2048,4096
+CUDA_VISIBLE_DEVICES=1 uv run python scripts/kernel/test_sdpa.py
+CUDA_VISIBLE_DEVICES=1 uv run python scripts/kernel/test_flashinfer.py
+CUDA_VISIBLE_DEVICES=1 uv run python scripts/kernel/bench_attention.py --seqlens 512,1024,2048,4096
 ```
 
 ## Install notes (sm_120 / CUDA 13.0)

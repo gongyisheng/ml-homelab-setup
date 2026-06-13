@@ -15,7 +15,7 @@ monitoring/
 ```
 
 The GPU exporter (`utkuozdemir/nvidia_gpu_exporter`) needs the NVIDIA Docker runtime from
-`../bootstrap/install_docker.sh`.
+`../bootstrap/install_cuda_container_kit.sh`.
 
 ## Bring-up
 

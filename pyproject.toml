@@ -1,0 +1,27 @@
+[project]
+name = "ml-homelab-setup"
+version = "0.1.0"
+description = "LLM/ML research homelab setup scripts, focus on x86 + NVIDIA GPU"
+requires-python = ">=3.10"
+dependencies = [
+    "nvidia-ml-py>=12",  # pynvml bindings for gpu_fans.py / gpu_power.py
+    "torch",             # check_env.py, test_nccl.py, train.py, kernel tests
+]
+
+# Kernel benchmarks. FlashInfer JIT-compiles on first use (needs ninja).
+# flash-attn and sgl-kernel need Blackwell-built wheels and are installed manually
+# (see scripts/kernel/README.md).
+[project.optional-dependencies]
+kernel = [
+    "flashinfer-python",
+    "ninja",
+]
+
+# Pin torch to the CUDA 13.0 build (required for sm_120 Blackwell; also runs the L40).
+[tool.uv.sources]
+torch = [{ index = "pytorch-cu130" }]
+
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true

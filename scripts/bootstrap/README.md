@@ -8,13 +8,17 @@ runtime), and version checks. Targets Ubuntu 24.04.
 ## Order
 
 ```bash
-bash install_driver.sh        # nvidia-open + cuda-keyring repo, then: sudo reboot
-bash install_cuda.sh          # CUDA 13.0 -> /usr/local/cuda, env in ~/.bashrc
-bash install_cudnn_nccl.sh    # cuDNN + NCCL
-bash install_docker.sh        # docker + nvidia runtime + smoke test
+bash install_driver.sh              # nvidia-open + cuda-keyring repo, then: sudo reboot
+bash install_cuda.sh                # CUDA 13.0 -> /usr/local/cuda, env in ~/.bashrc
+bash install_cudnn_nccl.sh          # cuDNN + NCCL
+bash install_docker.sh              # docker engine
+bash install_cuda_container_kit.sh  # nvidia-container-toolkit + runtime + smoke test
 ```
 
 Each takes env overrides (`CUDA_VERSION`, `CUDA_MAJOR`, `CUDA_DISTRO`, `CUDA_IMAGE`).
+
+`check_env.py` reports the torch/CUDA/cuDNN/NCCL stack and per-GPU compute capability;
+`run_nccl_test.sh` + `test_nccl.py` validate multi-GPU NCCL.
 
 ## Verify
 
@@ -22,8 +26,8 @@ Each takes env overrides (`CUDA_VERSION`, `CUDA_MAJOR`, `CUDA_DISTRO`, `CUDA_IMA
 nvidia-smi                              # driver + GPU health
 nvcc -V                                  # CUDA toolkit version
 dpkg -l | grep -E 'cudnn|nccl'           # cuDNN / NCCL
-python3 ../gpu/check_env.py              # torch/CUDA/cuDNN/NCCL + per-GPU sm
-bash run_nccl_test.sh                     # PyTorch + NCCL multi-GPU all-reduce
+uv run python check_env.py               # torch/CUDA/cuDNN/NCCL + per-GPU sm
+uv run bash run_nccl_test.sh              # PyTorch + NCCL multi-GPU all-reduce
 ```
 
 ## nvidia-smi diagnostics

@@ -4,7 +4,7 @@ SGLang and vLLM serving, side by side, **run inside their official Docker images
 bare-metal installs. Covers single-GPU, single-node multi-GPU (TP), and multi-node, plus
 a stdlib benchmark over the OpenAI-compatible endpoint.
 
-Needs the NVIDIA Docker runtime from `../bootstrap/install_docker.sh`. If docker requires
+Needs the NVIDIA Docker runtime from `../bootstrap/install_cuda_container_kit.sh`. If docker requires
 root on your box, prefix with sudo via `DOCKER="sudo docker"`.
 
 ## Layout
