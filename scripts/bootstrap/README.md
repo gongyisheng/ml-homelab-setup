@@ -58,6 +58,24 @@ Running NCCL all-reduce on 2 GPU(s).
 all_reduce sum = 3 (expected 3) -> PASS
 ```
 
+
+## Docker + multi-GPU NCCL
+
+Known issue: `Cuda failure 304 'OS call failed or operation not supported on this OS'`
+on docker + multi-GPU. Fix by adding these flags to the container:
+
+```
+--ipc=host --security-opt seccomp=unconfined --ulimit memlock=-1 --ulimit stack=67108864
+```
+
+- `ipc=host` — container shares host shared memory / IPC
+- `seccomp=unconfined` — disable syscall filtering
+- `memlock=-1` — GPU ops pin host memory; default 64 KB is too low
+- `stack=67108864` — raise per-thread stack from the 8 MB default
+
+`run_nccl_test.sh` runs the host check; inside a container, add the flags above.
+
+
 ### Multi-node NCCL
 
 `run_nccl_test.sh` also runs across nodes when `HEAD_NODE_IP` is set — launch it on every
@@ -66,20 +84,27 @@ node with a distinct `NODE_RANK` (c10d rendezvous on the head). The expected sum
 
 ```bash
 # head node:
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=2 bash run_nccl_test.sh
+HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 bash run_nccl_test.sh
 # worker node:
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=2 bash run_nccl_test.sh
+HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 bash run_nccl_test.sh
 ```
 
 Nodes must reach `HEAD_NODE_IP:RDZV_PORT` (default 29500). In containers add `--network host`.
 
-To drive all nodes from one machine (needs passwordless SSH + same repo path on each),
-use the orchestrator — first node in `NODES` is the head:
+To drive all nodes from one machine, use the orchestrator:
 
 ```bash
-NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=2 bash run_nccl_test_multinode.sh
+NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=1 bash run_nccl_test_multinode.sh
 NODES="..." DRY_RUN=1 bash run_nccl_test_multinode.sh   # print commands without running
 ```
+
+- First node in `NODES` = head; each node gets the correct `NODE_RANK` and the shared `HEAD_NODE_IP`.
+- SSHes into each node and runs `uv run bash run_nccl_test.sh`, streaming output prefixed
+  `[node N]`, and exits non-zero if any node fails.
+- `SSH_USER`, `REPO_DIR`, `RDZV_PORT` are overridable; `DRY_RUN=1` prints the commands without executing.
+
+Requirements: passwordless SSH to every node, same repo path + uv env on each, and all
+nodes able to reach the head's `RDZV_PORT` (29500).
 
 ## nvidia-smi diagnostics
 
@@ -96,19 +121,3 @@ Bottleneck reading from `dmon`:
 - **cpu-bound**: mem low, sm < 50%, pwr below cap
 
 PCIe x16 per-direction bandwidth: Gen3 ~16 GB/s, Gen4 ~32 GB/s, Gen5 ~64 GB/s.
-
-## Docker + NCCL multi-GPU
-
-Known issue: `Cuda failure 304 'OS call failed or operation not supported on this OS'`
-on docker + multi-GPU. Fix by adding these flags to the container:
-
-```
---ipc=host --security-opt seccomp=unconfined --ulimit memlock=-1 --ulimit stack=67108864
-```
-
-- `ipc=host` — container shares host shared memory / IPC
-- `seccomp=unconfined` — disable syscall filtering
-- `memlock=-1` — GPU ops pin host memory; default 64 KB is too low
-- `stack=67108864` — raise per-thread stack from the 8 MB default
-
-`run_nccl_test.sh` runs the host check; inside a container, add the flags above.
