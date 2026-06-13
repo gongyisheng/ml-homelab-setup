@@ -3,7 +3,7 @@
 Sends concurrent streaming chat completions and reports throughput, TTFT, and latency.
 Stdlib only — no extra deps.
 
-    python3 bench_serving.py --base-url http://localhost:30000 --model Qwen/Qwen2.5-1.5B-Instruct \
+    python3 bench_serving.py --base-url http://localhost:30000 --model Qwen/Qwen3-4B \
         --num-prompts 64 --concurrency 16 --max-tokens 128
 """
 import argparse
@@ -69,7 +69,7 @@ def pct(values, p):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--base-url", default="http://localhost:30000")
-    ap.add_argument("--model", default="Qwen/Qwen2.5-1.5B-Instruct")
+    ap.add_argument("--model", default="Qwen/Qwen3-4B")
     ap.add_argument("--num-prompts", type=int, default=64)
     ap.add_argument("--concurrency", type=int, default=16)
     ap.add_argument("--max-tokens", type=int, default=128)

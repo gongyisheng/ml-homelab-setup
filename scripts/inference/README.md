@@ -18,7 +18,7 @@ inference/
 ```
 
 Images: `lmsysorg/sglang` (`SGLANG_IMAGE`), `vllm/vllm-openai` (`VLLM_IMAGE`). Default
-model `Qwen/Qwen2.5-1.5B-Instruct` (for testing, fits a 16 GB 5060 Ti); override with `MODEL`.
+model `Qwen/Qwen3-4B` (for testing); override with `MODEL`.
 
 ## Serve
 
@@ -50,7 +50,7 @@ Reports request throughput (req/s), output throughput (tok/s), and TTFT / latenc
 
 ## Results
 
-`Qwen/Qwen3-8B` on 1× L40S (46 GB), single GPU — 64 prompts, concurrency 16, max_tokens
+`Qwen/Qwen3-4B` on 1× L40S (46 GB), single GPU — 64 prompts, concurrency 16, max_tokens
 128. Run sequentially (one GPU can't hold both servers at once), same shared HF weights.
 
 | Metric              | vLLM        | SGLang      |
@@ -69,6 +69,6 @@ longer/variable sequences.
 
 - bench harness: verified against a mock SSE endpoint (TTFT, token counting, throughput).
 - single-GPU launch: verified live on an L40S — vLLM (:8000) and SGLang (:30000) both
-  served `Qwen/Qwen3-8B` and benchmarked clean (see Results).
+  served `Qwen/Qwen3-4B` and benchmarked clean (see Results).
 - multi-GPU launch: scripts correct, not exercised here (single GPU on this box).
 - multi-node: written, untested here (single box).

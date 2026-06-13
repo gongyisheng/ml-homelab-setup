@@ -6,7 +6,7 @@ set -euo pipefail
 DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 BASE_URL="${BASE_URL:-http://localhost:30000}"
-MODEL="${MODEL:-Qwen/Qwen2.5-1.5B-Instruct}"
+MODEL="${MODEL:-Qwen/Qwen3-4B}"
 NUM_PROMPTS="${NUM_PROMPTS:-64}"
 CONCURRENCY="${CONCURRENCY:-16}"
 MAX_TOKENS="${MAX_TOKENS:-128}"

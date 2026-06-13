@@ -3,7 +3,7 @@
 Both servers must already be running (see ../sglang and ../vllm). Stdlib only.
 
     python3 compare.py --sglang-url http://localhost:30000 --vllm-url http://localhost:8000 \
-        --model Qwen/Qwen2.5-1.5B-Instruct --num-prompts 64 --concurrency 16
+        --model Qwen/Qwen3-4B --num-prompts 64 --concurrency 16
 """
 import argparse
 import time
@@ -34,7 +34,7 @@ def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sglang-url", default="http://localhost:30000")
     ap.add_argument("--vllm-url", default="http://localhost:8000")
-    ap.add_argument("--model", default="Qwen/Qwen2.5-1.5B-Instruct")
+    ap.add_argument("--model", default="Qwen/Qwen3-4B")
     ap.add_argument("--num-prompts", type=int, default=64)
     ap.add_argument("--concurrency", type=int, default=16)
     ap.add_argument("--max-tokens", type=int, default=128)

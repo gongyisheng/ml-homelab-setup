@@ -1,7 +1,7 @@
 # Shared defaults + docker flags for inference serve scripts. Source this.
 #
 # Override via env: MODEL, HF_CACHE, DOCKER (e.g. DOCKER="sudo docker").
-MODEL="${MODEL:-Qwen/Qwen2.5-1.5B-Instruct}"
+MODEL="${MODEL:-Qwen/Qwen3-4B}"
 HF_CACHE="${HF_CACHE:-$HOME/.cache/huggingface}"
 DOCKER="${DOCKER:-docker}"
 
