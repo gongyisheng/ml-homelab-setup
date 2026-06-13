@@ -1,0 +1,11 @@
+services:
+  nvidia_smi_exporter:
+    image: utkuozdemir/nvidia_gpu_exporter:1.4.1
+    container_name: nvidia_smi_exporter
+    restart: always
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=utility
+    ports:
+      - "9835:9835"
