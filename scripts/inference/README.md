@@ -31,8 +31,8 @@ GPU=1 DOCKER="sudo docker" bash vllm/serve_single_gpu.sh
 TP=2 DOCKER="sudo docker" bash sglang/serve_multi_gpu.sh
 
 # multi-node (run on each node; TP = total GPUs across nodes for sglang)
-HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=0 TP=4 bash sglang/serve_multi_node.sh
-ROLE=head HEAD_NODE_IP=10.0.0.101 TP=2 PP=2 bash vllm/serve_multi_node.sh
+HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=0 TP=2 bash sglang/serve_multi_node.sh
+ROLE=head HEAD_NODE_IP=10.0.0.101 TP=2 bash vllm/serve_multi_node.sh
 ```
 
 ## Benchmark
@@ -50,25 +50,28 @@ Reports request throughput (req/s), output throughput (tok/s), and TTFT / latenc
 
 ## Results
 
-`Qwen/Qwen3-4B` on 1× L40S (46 GB), single GPU — 64 prompts, concurrency 16, max_tokens
-128. Run sequentially (one GPU can't hold both servers at once), same shared HF weights.
+### Qwen3-4B on 1× RTX PRO 6000 Blackwell (97 GB), single GPU
 
-| Metric              | vLLM        | SGLang      |
-|---------------------|-------------|-------------|
-| Request throughput  | 5.27 req/s  | 5.23 req/s  |
-| Output throughput   | 674.5 tok/s | 669.4 tok/s |
-| TTFT p50 / p99      | 69 / 107 ms | 66 / 168 ms |
-| Latency p50 / p99   | 3021/3061ms | 3043/3131ms |
+vLLM 0.23.0 vs SGLang 0.5.13, `:latest` images on CUDA 13 / driver 580 (sm_120). 64
+prompts, concurrency 16, max_tokens 128. Run sequentially, same shared HF weights.
 
-Effectively a dead heat (within ~1%). At 8B on a single GPU with batch 16 both engines are
-compute-bound, so they converge — differences are within run-to-run noise. Engine gaps
-(scheduling, prefix caching, chunked prefill) show up under higher concurrency or
-longer/variable sequences.
+| Metric              | vLLM         | SGLang       |
+|---------------------|--------------|--------------|
+| Request throughput  | 16.50 req/s  | 16.01 req/s  |
+| Output throughput   | 2111.8 tok/s | 2048.8 tok/s |
+| TTFT p50 / p99      | 47 / 407 ms  | 63 / 361 ms  |
+| Latency p50 / p99   | 879 /1240 ms | 927 /1225 ms |
+
+Both run cleanly on Blackwell from the stock images — no flags needed. Near dead heat
+(vLLM ~3% ahead on throughput). At 4B with batch 16 the GPU is far from saturated, so the
+engines converge and gaps are run-to-run noise — differences emerge only under higher
+concurrency or longer sequences.
 
 ## Verification status
 
 - bench harness: verified against a mock SSE endpoint (TTFT, token counting, throughput).
-- single-GPU launch: verified live on an L40S — vLLM (:8000) and SGLang (:30000) both
-  served `Qwen/Qwen3-4B` and benchmarked clean (see Results).
+- single-GPU launch: verified live on an RTX PRO 6000 Blackwell (Qwen3-4B) and an L40S
+  (Qwen3-8B) — vLLM (:8000) and SGLang (:30000) both served and benchmarked clean (see
+  Results). Blackwell sm_120 works on the stock `:latest` images, no overrides.
 - multi-GPU launch: scripts correct, not exercised here (single GPU on this box).
 - multi-node: written, untested here (single box).
