@@ -73,6 +73,14 @@ HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=2 bash run_nccl_test.
 
 Nodes must reach `HEAD_NODE_IP:RDZV_PORT` (default 29500). In containers add `--network host`.
 
+To drive all nodes from one machine (needs passwordless SSH + same repo path on each),
+use the orchestrator — first node in `NODES` is the head:
+
+```bash
+NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=2 bash run_nccl_test_multinode.sh
+NODES="..." DRY_RUN=1 bash run_nccl_test_multinode.sh   # print commands without running
+```
+
 ## nvidia-smi diagnostics
 
 | Command                  | Use                                                        |
