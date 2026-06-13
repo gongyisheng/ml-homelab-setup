@@ -82,7 +82,7 @@ Two ways to run it. Both use c10d rendezvous on the head; the expected sum scale
 `1+2+...+(NNODES*GPUS_PER_NODE)`, and nodes must reach `HEAD_NODE_IP:RDZV_PORT`
 (default 29500). In containers add `--network host`.
 
-Example below: two nodes, **10.0.0.243** (head) and **10.0.0.244** (worker), 1 GPU each.
+Example below: two nodes, **10.0.0.101** (head) and **10.0.0.244** (worker), 1 GPU each.
 
 ### Run on each node
 
@@ -90,10 +90,10 @@ Log into each instance and run `run_nccl_test.sh` with `HEAD_NODE_IP` set and a 
 `NODE_RANK`:
 
 ```bash
-# on 10.0.0.243 (head):
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 bash run_nccl_test.sh
+# on 10.0.0.101 (head):
+HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 bash run_nccl_test.sh
 # on 10.0.0.244 (worker):
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 bash run_nccl_test.sh
+HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 bash run_nccl_test.sh
 ```
 
 ### Run from a control instance
@@ -103,8 +103,8 @@ SSHes into every node for you:
 
 ```bash
 # from any box with SSH access to both nodes:
-NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=1 bash run_nccl_test_multinode.sh
-NODES="10.0.0.243 10.0.0.244" DRY_RUN=1 bash run_nccl_test_multinode.sh   # print commands without running
+NODES="10.0.0.101 10.0.0.244" GPUS_PER_NODE=1 bash run_nccl_test_multinode.sh
+NODES="10.0.0.101 10.0.0.244" DRY_RUN=1 bash run_nccl_test_multinode.sh   # print commands without running
 ```
 
 - First node in `NODES` = head; each node gets the correct `NODE_RANK` and the shared `HEAD_NODE_IP`.

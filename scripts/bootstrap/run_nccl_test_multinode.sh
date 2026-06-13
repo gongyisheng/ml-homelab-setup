@@ -8,10 +8,7 @@
 # Requires: passwordless SSH to every node, uv installed on each, and every node able to
 # reach the head's RDZV_PORT.
 #
-#   NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=1 bash run_nccl_test_multinode.sh
-#   NODES="..." SSH_USER=yisheng bash run_nccl_test_multinode.sh
-#   NODES="..." SYNC=0 REPO_DIR=/home/yisheng/ml-homelab-setup bash run_nccl_test_multinode.sh
-#   NODES="..." DRY_RUN=1 bash run_nccl_test_multinode.sh        # print commands, don't run
+#   NODES="10.0.0.101 10.0.0.244" GPUS_PER_NODE=1 SSH_USER=yisheng bash run_nccl_test_multinode.sh
 set -euo pipefail
 
 NODES="${NODES:?set NODES to space-separated node IPs/hosts (first is the head)}"
