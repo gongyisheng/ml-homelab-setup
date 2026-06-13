@@ -1,4 +1,4 @@
-"""Benchmark available attention backends (SDPA, FlashAttention, FlashInfer, sgl-kernel)
+"""Benchmark available attention backends (SDPA, FlashAttention, FlashInfer)
 across sequence lengths. Reports forward latency (ms); missing backends are skipped.
 
     python3 bench_attention.py
@@ -22,15 +22,6 @@ def build_backends():
     try:
         from flash_attn import flash_attn_func
         backends["flash_attn"] = lambda q, k, v: flash_attn_func(
-            q.unsqueeze(0), k.unsqueeze(0), v.unsqueeze(0), causal=True)
-    except Exception:
-        pass
-    try:
-        try:
-            from sgl_kernel.flash_attn import flash_attn_func as sgl_fa
-        except Exception:
-            from sgl_kernel import flash_attn_func as sgl_fa
-        backends["sgl_kernel"] = lambda q, k, v: sgl_fa(
             q.unsqueeze(0), k.unsqueeze(0), v.unsqueeze(0), causal=True)
     except Exception:
         pass

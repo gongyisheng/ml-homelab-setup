@@ -1,7 +1,7 @@
 # kernel
 
 Attention/kernel backends: import + correctness smoke tests (vs SDPA), then benchmarks.
-Backends: PyTorch SDPA, FlashAttention, FlashInfer, sgl-kernel.
+Backends: PyTorch SDPA, FlashAttention, FlashInfer.
 
 ## Scripts
 
@@ -11,7 +11,6 @@ Backends: PyTorch SDPA, FlashAttention, FlashInfer, sgl-kernel.
 | `test_sdpa.py`       | SDPA vs naive fp32 attention (the correctness baseline)      |
 | `test_flashattn.py`  | FlashAttention import + correctness vs SDPA                  |
 | `test_flashinfer.py` | FlashInfer import + correctness vs SDPA                      |
-| `test_sgl_kernel.py` | sgl-kernel import + correctness vs SDPA                      |
 | `bench_attention.py` | latency across seqlen / heads / dim for available backends   |
 
 Each test prints `PASS` / `FAIL`, or `SKIP` with an install hint if the backend is absent.
@@ -46,8 +45,8 @@ Blackwell sm_120 needs Blackwell-built wheels — generic PyPI wheels may not in
 
   `flash-attn` (FA2) is the **general, widely-supported** kernel (Ampere onward), 
   but ships **no prebuilt sm_120 wheel** — so it builds from source against CUDA 13.0, 
-  **slow and RAM-heavy** (can take hours). Cap parallelism and target only sm_120 so 
-  it doesn't OOM or build every arch:
+  **slow and RAM-heavy** (~4.5 h at `MAX_JOBS=1`). Cap parallelism and target only sm_120 
+  so it doesn't OOM or build every arch:
   ```bash
   MAX_JOBS=1 TORCH_CUDA_ARCH_LIST="12.0" \
     uv pip install flash-attn==2.8.3.post1 --no-build-isolation
@@ -55,11 +54,23 @@ Blackwell sm_120 needs Blackwell-built wheels — generic PyPI wheels may not in
   Peak RAM ≈ `MAX_JOBS` × 25 GB — raise `MAX_JOBS` only if you have the headroom. Needs
   `ninja` (in the `kernel` extra) or the build is serial and far slower. Run under
   `tmux`/`nohup` so a dropped SSH session doesn't kill the multi-hour build.
-- **sgl-kernel**: `pip install sgl-kernel`. Entry point varies by version; the test probes
-  the known ones.
 
-## Verification status (RTX 5060 Ti, torch 2.11+cu130)
+## Verification status
 
-- `test_sdpa`: PASS (diff ~1e-6 vs naive).
-- `test_flashinfer`: PASS (diff ~1e-3 vs SDPA).
-- `test_flashattn`, `test_sgl_kernel`: SKIP (not installed) — install per above to enable.
+**RTX PRO 6000 Blackwell (sm_120), torch 2.12+cu130**
+- `test_sdpa`, `test_flashinfer`: PASS.
+- `test_flashattn`: PASS (FA2, max abs diff 1e-4 vs SDPA). Source build took ~3h43m at
+  `MAX_JOBS=1`.
+
+### Benchmark (heads=32, dim=128, fp16, causal — fwd latency ms)
+
+| seqlen | sdpa  | flashinfer | flash_attn (FA2) |
+|-------:|------:|-----------:|-----------------:|
+| 512    | 0.063 | 0.125      | 0.122 |
+| 1024   | 0.059 | 0.062      | 0.122 |
+| 2048   | 0.140 | 0.153      | 0.140 |
+| 4096   | 0.460 | 0.469      | 0.454 |
+| 8192   | 1.629 | 1.710      | 2.250 |
+
+**SDPA is good enough** — it wins or ties at every seqlen on Blackwell, so just use it.
+FA2/FlashInfer are for parity/compat testing, not a speedup here.
