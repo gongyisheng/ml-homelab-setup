@@ -46,7 +46,7 @@ GPU_IDLE_SAMPLES=60         # all samples must be idle
 GPU_IDLE_INTERVAL=10        # seconds between samples → 60 × 10s = 10 min
 ```
 
-### Power Control and Cooling
+### Power Control, Cooling and Noise
 
 install dependency use following command:
 ```bash
@@ -64,4 +64,5 @@ Recommended settings (RTX 6000 Pro / RTX 5090)
 - **Power cap 400W**: only ~10% performance loss, but runs much safer and cooler.
   Strongly recommended over the stock limit for sustained loads.
 - **Fan speed 55%**: tested to keep the GPU under 70°C at ~28°C ambient
-  (typical Bay Area room temperature).
+  (typical Bay Area room temperature). Noise is not noticeable below 60%,
+  but becomes noisy above 75%.
