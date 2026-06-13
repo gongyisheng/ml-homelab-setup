@@ -33,17 +33,28 @@ Blackwell sm_120 needs Blackwell-built wheels — generic PyPI wheels may not in
 
 - **FlashInfer**: `pip install flashinfer-python==0.6.12` (the version verified on sm_120
   here). JIT-compiles kernels on first use.
-- **FlashAttention**: FA3/FA4 are **not supported on sm_120** (no Blackwell consumer arch
-  in their build). `flash-attn` (FA2) has no sm_120 wheel, so it builds from source against
-  CUDA 13.0 — **slow and RAM-heavy** (can take hours; each `nvcc` job uses ~8–10 GB). Cap
-  parallelism and target only sm_120 so it doesn't OOM or build every arch:
+- **FlashAttention**: FA3/FA4 are **not supported on sm_120** — a hardware mismatch, not a
+  missing build target. "Blackwell" covers two different tensor-core designs, and sm_120
+  has neither's key feature:
+  - **FA3** needs **WGMMA** + **TMA** (Hopper/SM90, H100) — async matmul + copy engine.
+  - **FA4** needs **tcgen05** + the **TMEM** tensor-memory block (data-center Blackwell/
+    SM100, B200).
+  - **sm_120** (consumer/workstation Blackwell, RTX 5090 / RTX PRO 6000) has neither — just
+    an extended Ampere-era `mma.sync` (HMMA) with new FP4/FP6 datatypes. `ptxas` rejects the
+    instructions outright (`wgmma.fence` / `tcgen05.*` "not supported on .target sm_120"),
+    so it falls back to **FA2**.
+
+  `flash-attn` (FA2) is the **general, widely-supported** kernel (Ampere onward), 
+  but ships **no prebuilt sm_120 wheel** — so it builds from source against CUDA 13.0, 
+  **slow and RAM-heavy** (can take hours). Cap parallelism and target only sm_120 so 
+  it doesn't OOM or build every arch:
   ```bash
   MAX_JOBS=1 TORCH_CUDA_ARCH_LIST="12.0" \
     uv pip install flash-attn==2.8.3.post1 --no-build-isolation
   ```
-  Raise `MAX_JOBS` if you have RAM to spare (peak ≈ `MAX_JOBS` × 10 GB). Needs `ninja`
-  (in the `kernel` extra) or the build is serial and far slower. Run under `tmux`/`nohup`
-  so a dropped SSH session doesn't kill the multi-hour build.
+  Peak RAM ≈ `MAX_JOBS` × 25 GB — raise `MAX_JOBS` only if you have the headroom. Needs
+  `ninja` (in the `kernel` extra) or the build is serial and far slower. Run under
+  `tmux`/`nohup` so a dropped SSH session doesn't kill the multi-hour build.
 - **sgl-kernel**: `pip install sgl-kernel`. Entry point varies by version; the test probes
   the known ones.
 
