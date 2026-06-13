@@ -8,6 +8,18 @@ set -euo pipefail
 CUDA_VERSION="${CUDA_VERSION:-13.0}"
 pkg="cuda-toolkit-${CUDA_VERSION/./-}"
 
+DISTRO="${CUDA_DISTRO:-ubuntu2404}"
+ARCH="${CUDA_ARCH:-x86_64}"
+
+# Ensure the CUDA apt repo is present (install_driver.sh also adds it; this makes
+# install_cuda.sh self-sufficient when run standalone).
+if ! apt-cache policy "$pkg" 2>/dev/null | grep -q developer.download.nvidia.com; then
+    cd /tmp
+    wget -O cuda-keyring.deb \
+        "https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/cuda-keyring_1.1-1_all.deb"
+    sudo dpkg -i cuda-keyring.deb
+fi
+
 sudo apt-get update
 sudo apt-get install -y "$pkg"
 
