@@ -14,11 +14,16 @@ GPU monitoring utilities. (Env diagnostic `check_env.py` lives in `../bootstrap/
 
 ## Run
 
-Fan/power control need root, so call the venv's python directly under sudo
-(`nvidia-ml-py` lives in `.venv`). Paths below are from the repo root:
+install dependency use following command:
+```bash
+sudo apt install -y python3-pynvml
+```
+
+run with following command
 
 ```bash
-sudo .venv/bin/python scripts/gpu/gpu_fans.py 70
+sudo python3 scripts/gpu/gpu_fans.py 70
+sudo python3 scripts/gpu/gpu_power.py 300 --gpu 0  # explicit value still overrides
 ```
 
 ## Config
@@ -26,11 +31,18 @@ sudo .venv/bin/python scripts/gpu/gpu_fans.py 70
 Copy `.env.example` to `.env` and fill in email creds, idle threshold, poll interval,
 and power cap.
 
-`gpu_power.py` reads `GPU_POWER_CAP_W` from `.env` when no watts are passed:
+### Email (Gmail app password)
+
+`send_email.py` / `gpu_idle_alert.sh` send over SMTP. With Gmail, enable 2-Step
+Verification, then create an **App password** (Google Account → Security → App passwords —
+a 16-char code) and use that, not your normal login password:
 
 ```bash
-sudo -E .venv/bin/python scripts/gpu/gpu_power.py          # apply GPU_POWER_CAP_W to all GPUs
-sudo .venv/bin/python scripts/gpu/gpu_power.py 300 --gpu 0  # explicit value still overrides
+# scripts/gpu/.env
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=465
+SMTP_USER=you@gmail.com
+SMTP_PASSWORD=abcd efgh ijkl mnop   # 16-char app password (spaces optional)
+SMTP_TO=you@gmail.com
 ```
 
-(`sudo -E` preserves your environment; without it, set the cap on the CLI instead.)

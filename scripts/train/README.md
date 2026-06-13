@@ -63,14 +63,6 @@ step   19 | loss 7.6962
 saved checkpoint -> /tmp/homelab-train/ckpt.pt
 ```
 
-### Multi-node notes
+## RL multi-node (miles)
 
-- **Static rendezvous, not c10d.** c10d auto-elects the store host by resolving the
-  hostname, which maps to `127.0.1.1` on stock Ubuntu — so no node ever hosts the store and
-  every rank (including rank 0) hangs 60s as a TCP client, then dies. Static rendezvous
-  makes node-rank 0 the master unconditionally.
-- **NCCL is pinned off docker/virtual bridges** (`NCCL_SOCKET_IFNAME=^docker,br-,lo,veth,virbr`).
-  An UP `br-*` bridge on the same `172.18.0.0/16` subnet exists on every node; left to
-  auto-select, NCCL can pick that unroutable bridge and hang the all-reduce.
-- Run launchers under `uv run` (or an activated `.venv`); over a non-interactive SSH shell
-  also `export PATH=$HOME/.local/bin:$PATH` so `uv` resolves.
+more complicated but runnable, ref to: [miles-rl]: https://github.com/gongyisheng/miles/blob/miles-lora-disaggregate-mode-2/examples/lora/run-qwen2.5-3B-megatron-lora-disaggregated-multi-node.sh

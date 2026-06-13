@@ -18,7 +18,7 @@ inference/
 ```
 
 Images: `lmsysorg/sglang` (`SGLANG_IMAGE`), `vllm/vllm-openai` (`VLLM_IMAGE`). Default
-model `Qwen/Qwen2.5-1.5B-Instruct` (fits a 16 GB 5060 Ti); override with `MODEL`.
+model `Qwen/Qwen2.5-1.5B-Instruct` (for testing, fits a 16 GB 5060 Ti); override with `MODEL`.
 
 ## Serve
 
@@ -31,8 +31,8 @@ GPU=1 DOCKER="sudo docker" bash vllm/serve_single_gpu.sh
 TP=2 DOCKER="sudo docker" bash sglang/serve_multi_gpu.sh
 
 # multi-node (run on each node; TP = total GPUs across nodes for sglang)
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 TP=4 bash sglang/serve_multi_node.sh
-ROLE=head HEAD_NODE_IP=10.0.0.243 TP=2 PP=2 bash vllm/serve_multi_node.sh
+HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=0 TP=4 bash sglang/serve_multi_node.sh
+ROLE=head HEAD_NODE_IP=10.0.0.101 TP=2 PP=2 bash vllm/serve_multi_node.sh
 ```
 
 ## Benchmark
