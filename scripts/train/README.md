@@ -38,11 +38,11 @@ TRAIN_SCRIPT=/path/to/train_lora.py GPU=1 bash run_single_gpu.sh --config cfg.ya
 
 All three topologies verified 2026-06-12 on torch 2.12.0+cu130, NCCL 2.29.7+cuda13.2.
 
-| Topology         | Hardware                                          | Result |
-|------------------|---------------------------------------------------|--------|
-| single-GPU       | RTX 5060 Ti (pc3 / 10.0.0.244)                    | ✅ pass |
-| multi-GPU (DDP)  | 2× RTX 5060 Ti (pc3 / 10.0.0.244)                 | ✅ pass |
-| multi-node (1 GPU each) | pc3 (RTX 5060 Ti) + pc2 (RTX PRO 6000 / 10.0.0.101) | ✅ pass |
+| Topology         | Hardware                          | Result |
+|------------------|-----------------------------------|--------|
+| single-GPU       | RTX 5060 Ti                       | ✅ pass |
+| multi-GPU        | 2× RTX 5060 Ti                    | ✅ pass |
+| multi-node       | RTX 5060 Ti + RTX PRO 6000        | ✅ pass |
 
 Sample output (loss decreasing, rank-0 checkpoint written):
 
