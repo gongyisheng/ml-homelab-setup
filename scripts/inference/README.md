@@ -102,7 +102,7 @@ concurrency 16, max_tokens 128.
 Both run cleanly on Blackwell from stock images, no flags. Near dead heat; at 4B the GPU is far
 from saturated so the engines converge.
 
-### Qwen3-4B across pc2 + pc3 over 1 GbE
+### Qwen3-4B across 2 nodes over 1 GbE
 
 16 prompts, concurrency 4, max_tokens 64 (comparable to each other, **not** to the single-GPU
 run above). pc2 prefill/head, pc3 GPU 1 decode/worker.
@@ -147,13 +147,3 @@ The single-box scripts worked off the shelf; the cross-node paths needed every o
    copy); (b) per-node scripts launch their container **detached and exit** — a long-running
    script over `ssh "nohup … &"` holds the channel open and the next node never launches;
    (c) launch nodes concurrently (head waits for workers to join while they boot).
-
-## Verification status
-
-- single-GPU: verified live on RTX PRO 6000 and L40S — vLLM (:8000) and SGLang (:30000) served
-  and benchmarked clean. Blackwell sm_120 works on stock `:latest` images, no overrides.
-- multi-node: **verified live** on pc2 + pc3 via `serve_multi_node_cluster.sh` — vLLM PP and
-  SGLang TP (eager) both served and benchmarked (table above). SGLang cross-node CUDA graph
-  confirmed to deadlock; eager is the default here.
-- PD disaggregation: **verified live** — vLLM (NIXL) and SGLang (mooncake_tcp) both served a
-  completion through the proxy/router and benchmarked from the control box.
