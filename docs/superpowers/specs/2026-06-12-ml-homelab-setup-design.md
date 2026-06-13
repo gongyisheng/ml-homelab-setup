@@ -8,9 +8,9 @@ one repo, parameterized across single-GPU, single-node-multi-GPU, and multi-node
 
 | Machine          | GPU(s)        | Arch     | sm    | Notes                          |
 |------------------|---------------|----------|-------|--------------------------------|
-| workstation      | RTX 6000 Pro  | Blackwell| sm_120| CUDA 12.8+ required            |
-| workstation      | RTX 5090      | Blackwell| sm_120| CUDA 12.8+ required            |
-| **current box**  | 2× RTX 5060ti | Blackwell| sm_120| multi-GPU dev/test box         |
+| workstation      | RTX 6000 Pro  | Blackwell| sm_120| CUDA 13.0+ required            |
+| workstation      | RTX 5090      | Blackwell| sm_120| CUDA 13.0+ required            |
+| **current box**  | 2× RTX 5060ti | Blackwell| sm_120| CUDA 13.0+; multi-GPU dev box  |
 | server           | L40           | Ada      | sm_89 | CUDA 12.x                      |
 
 Scripts cover three topologies: **single-node single-GPU**, **single-node multi-GPU**
@@ -43,8 +43,9 @@ Conventions:
 Port the ml/nv runbook into runnable scripts.
 
 - `install_driver.sh` — NVIDIA network repo, `nvidia-open` kernel module, reboot note.
-- `install_cuda.sh` — install CUDA (12.8 / 13.0), set `CUDA_HOME`/`PATH`/`LD_LIBRARY_PATH`,
-  support version switching via `/usr/local/cuda` symlink.
+- `install_cuda.sh` — install CUDA (13.0+ for sm_120 Blackwell; 12.x for L40),
+  set `CUDA_HOME`/`PATH`/`LD_LIBRARY_PATH`, support version switching via
+  `/usr/local/cuda` symlink.
 - `install_cudnn_nccl.sh` — cuDNN + NCCL install.
 - `install_docker.sh` — docker engine + nvidia-container-toolkit.
 - `check_version.py` — report driver, CUDA (`nvcc`), cuDNN, NCCL, and torch versions in
