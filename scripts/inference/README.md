@@ -35,6 +35,9 @@ HEAD_NODE_IP=10.0.0.101 NNODES=2 NODE_RANK=0 TP=2 bash sglang/serve_multi_node.s
 ROLE=head HEAD_NODE_IP=10.0.0.101 TP=2 bash vllm/serve_multi_node.sh
 ```
 
+The host HF cache (`$HF_CACHE`, default `~/.cache/huggingface`) is mounted into the
+container, so a model downloaded once is reused across runs and engines.
+
 ## Benchmark
 
 ```bash
