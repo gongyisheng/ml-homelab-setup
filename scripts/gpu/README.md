@@ -12,20 +12,6 @@ GPU monitoring utilities. (Env diagnostic `check_env.py` lives in `../bootstrap/
 | `send_email.py`    | shared email notification helper                              |
 | `setup_crontab.sh` | install idle-alert / monitors as cron jobs                   |
 
-## Run
-
-install dependency use following command:
-```bash
-sudo apt install -y python3-pynvml
-```
-
-run with following command
-
-```bash
-sudo python3 scripts/gpu/gpu_fans.py 70
-sudo python3 scripts/gpu/gpu_power.py 300 --gpu 0  # explicit value still overrides
-```
-
 ## Config
 
 Copy `.env.example` to `.env` and fill in email creds, idle threshold, poll interval,
@@ -46,3 +32,23 @@ SMTP_PASSWORD=abcd efgh ijkl mnop   # 16-char app password (spaces optional)
 SMTP_TO=you@gmail.com
 ```
 
+## Power Control and Cooling
+
+install dependency use following command:
+```bash
+sudo apt install -y python3-pynvml
+```
+
+run with following command
+
+```bash
+sudo python3 scripts/gpu/gpu_fans.py 55
+sudo python3 scripts/gpu/gpu_power.py 400 --gpu 0  # explicit value still overrides
+```
+
+### Recommended settings (RTX 6000 Pro / RTX 5090)
+
+- **Power cap 400W**: only ~10% performance loss, but runs much safer and cooler.
+  Strongly recommended over the stock limit for sustained loads.
+- **Fan speed 55%**: tested to keep the GPU under 70°C at ~28°C ambient
+  (typical Bay Area room temperature).
