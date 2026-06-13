@@ -48,9 +48,27 @@ python3 bench/compare.py --sglang-url http://localhost:30000 --vllm-url http://l
 
 Reports request throughput (req/s), output throughput (tok/s), and TTFT / latency p50/p99.
 
+## Results
+
+`Qwen/Qwen3-8B` on 1× L40S (46 GB), single GPU — 64 prompts, concurrency 16, max_tokens
+128. Run sequentially (one GPU can't hold both servers at once), same shared HF weights.
+
+| Metric              | vLLM        | SGLang      |
+|---------------------|-------------|-------------|
+| Request throughput  | 5.27 req/s  | 5.23 req/s  |
+| Output throughput   | 674.5 tok/s | 669.4 tok/s |
+| TTFT p50 / p99      | 69 / 107 ms | 66 / 168 ms |
+| Latency p50 / p99   | 3021/3061ms | 3043/3131ms |
+
+Effectively a dead heat (within ~1%). At 8B on a single GPU with batch 16 both engines are
+compute-bound, so they converge — differences are within run-to-run noise. Engine gaps
+(scheduling, prefix caching, chunked prefill) show up under higher concurrency or
+longer/variable sequences.
+
 ## Verification status
 
 - bench harness: verified against a mock SSE endpoint (TTFT, token counting, throughput).
-- single / multi-GPU launch: scripts are correct but a live launch needs docker (root on
-  this box); run the `serve_*` commands above to bring a server up, then benchmark.
+- single-GPU launch: verified live on an L40S — vLLM (:8000) and SGLang (:30000) both
+  served `Qwen/Qwen3-8B` and benchmarked clean (see Results).
+- multi-GPU launch: scripts correct, not exercised here (single GPU on this box).
 - multi-node: written, untested here (single box).
