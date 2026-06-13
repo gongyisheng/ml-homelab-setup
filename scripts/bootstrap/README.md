@@ -58,6 +58,21 @@ Running NCCL all-reduce on 2 GPU(s).
 all_reduce sum = 3 (expected 3) -> PASS
 ```
 
+### Multi-node NCCL
+
+`run_nccl_test.sh` also runs across nodes when `HEAD_NODE_IP` is set — launch it on every
+node with a distinct `NODE_RANK` (c10d rendezvous on the head). The expected sum scales to
+`1+2+...+(NNODES*GPUS_PER_NODE)`.
+
+```bash
+# head node:
+HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=2 bash run_nccl_test.sh
+# worker node:
+HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=2 bash run_nccl_test.sh
+```
+
+Nodes must reach `HEAD_NODE_IP:RDZV_PORT` (default 29500). In containers add `--network host`.
+
 ## nvidia-smi diagnostics
 
 | Command                  | Use                                                        |
