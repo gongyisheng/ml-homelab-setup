@@ -1,6 +1,6 @@
 # ml-homelab-setup
 
-LLM/ML research homelab setup scripts, focus on x86 + NVIDIA GPU.
+LLM/ML research homelab setup scripts, focus on x86 + NVIDIA GPU, multi-node cluster env.
 
 Currently I have following dedicate hardwares: 
 1 RTX 6000 Pro Blackwell, 1 RTX 5090 (rent from my friend), 1 2X RTX 5060ti, 1 A10G (company), 1 L40S (company)
