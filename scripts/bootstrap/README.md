@@ -108,11 +108,13 @@ NODES="10.0.0.243 10.0.0.244" DRY_RUN=1 bash run_nccl_test_multinode.sh   # prin
 ```
 
 - First node in `NODES` = head; each node gets the correct `NODE_RANK` and the shared `HEAD_NODE_IP`.
-- SSHes into each node and runs `uv run bash run_nccl_test.sh`, streaming output prefixed
-  `[node N]`, and exits non-zero if any node fails.
-- `SSH_USER`, `REPO_DIR`, `RDZV_PORT` are overridable; `DRY_RUN=1` prints the commands without executing.
-- Requirements: the control instance has passwordless SSH to every node, same repo path +
-  uv env on each, and all nodes can reach the head's `RDZV_PORT` (29500).
+- By default it rsyncs this repo to `/tmp/ml-homelab-setup` on every node (no pre-clone
+  needed), then runs `uv run bash run_nccl_test.sh` there — output is streamed prefixed
+  `[node N]`, and it exits non-zero if any node fails.
+- `SSH_USER`, `REPO_DIR`, `RDZV_PORT` are overridable. `SYNC=0` skips the copy (repo already
+  at `REPO_DIR`); `DRY_RUN=1` prints the commands without executing.
+- Requirements: the control instance has passwordless SSH + rsync to every node, uv installed
+  on each, and all nodes can reach the head's `RDZV_PORT` (29500).
 
 ## nvidia-smi diagnostics
 
