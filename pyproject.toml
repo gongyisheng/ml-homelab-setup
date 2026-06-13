@@ -10,12 +10,13 @@ dependencies = [
 ]
 
 # Kernel benchmarks. FlashInfer JIT-compiles on first use (needs ninja).
-# flash-attn and sgl-kernel need Blackwell-built wheels and are installed manually
-# (see scripts/kernel/README.md).
+# sageattention is the INT8 (v1/Triton) attention backend. flash-attn, xformers, and
+# gptqmodel (Marlin) need manual installs on sm_120 (see scripts/kernel/README.md).
 [project.optional-dependencies]
 kernel = [
     "flashinfer-python",
     "ninja",
+    "sageattention",
 ]
 
 # Pin torch to the CUDA 13.0 build (required for sm_120 Blackwell; also runs the L40).

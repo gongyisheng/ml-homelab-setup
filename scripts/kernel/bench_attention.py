@@ -25,6 +25,31 @@ def build_backends():
             q.unsqueeze(0), k.unsqueeze(0), v.unsqueeze(0), causal=True)
     except Exception:
         pass
+    try:
+        from _triton_attn import triton_attn_func
+        backends["triton"] = lambda q, k, v: triton_attn_func(
+            q.transpose(0, 1).unsqueeze(0), k.transpose(0, 1).unsqueeze(0),
+            v.transpose(0, 1).unsqueeze(0), causal=True)  # (S,H,D) -> (1,H,S,D)
+    except Exception:
+        pass
+    try:
+        from sageattention import sageattn
+        backends["sageattn"] = lambda q, k, v: sageattn(
+            q.unsqueeze(0), k.unsqueeze(0), v.unsqueeze(0),
+            tensor_layout="NHD", is_causal=True)
+    except Exception:
+        pass
+    try:
+        from xformers.ops import memory_efficient_attention
+        from xformers.ops.fmha.attn_bias import LowerTriangularMask
+        xf = lambda q, k, v: memory_efficient_attention(
+            q.unsqueeze(0), k.unsqueeze(0), v.unsqueeze(0), attn_bias=LowerTriangularMask())
+        if torch.cuda.is_available():  # smoke-test: self-exclude if no sm_120 CUDA ext
+            s = torch.zeros(8, 4, 32, dtype=torch.float16, device="cuda")
+            xf(s, s, s)
+        backends["xformers"] = xf
+    except Exception:
+        pass
     return backends
 
 
