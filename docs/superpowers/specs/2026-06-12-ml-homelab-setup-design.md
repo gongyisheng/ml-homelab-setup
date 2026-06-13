@@ -22,8 +22,8 @@ Scripts cover three topologies: **single-node single-GPU**, **single-node multi-
 ml-homelab-setup/
 ├── README.md          # hardware inventory table + module index + quickstart
 └── scripts/
-    ├── init/          # driver, CUDA, cuDNN, NCCL, docker installs + version checks
-    ├── gpu/           # fans, power, idle alert + cron setup
+    ├── bootstrap/     # driver, CUDA, cuDNN, NCCL, docker installs + version checks
+    ├── gpu/           # env check, fans, power, idle alert + cron setup
     ├── inference/     # sglang + vllm: single, multi-gpu, multi-node + bench
     ├── train/         # single-gpu, multi-gpu, multi-node launchers
     └── kernel/        # flashattn, flashinfer, sdpa, sgl-kernel tests + bench
@@ -39,7 +39,7 @@ Conventions:
 
 ## Module scope
 
-### scripts/init/
+### scripts/bootstrap/
 Port the ml/nv runbook into runnable scripts.
 
 - `install_driver.sh` — NVIDIA network repo, `nvidia-open` kernel module, reboot note.
@@ -48,8 +48,7 @@ Port the ml/nv runbook into runnable scripts.
   `/usr/local/cuda` symlink.
 - `install_cudnn_nccl.sh` — cuDNN + NCCL install.
 - `install_docker.sh` — docker engine + nvidia-container-toolkit.
-- `check_version.py` — report driver, CUDA (`nvcc`), cuDNN, NCCL, and torch versions in
-  one place; flag mismatches against the target.
+- Version check after install reuses `scripts/gpu/check_env.py` (no duplication).
 - `run_nccl_test.sh` — docker NCCL multi-GPU sanity check with the known-good flags
   (`--ipc=host --security-opt seccomp=unconfined --ulimit memlock=-1 --ulimit stack=67108864`),
   documenting the `Cuda failure 304` fix.
@@ -57,8 +56,12 @@ Port the ml/nv runbook into runnable scripts.
   (`watch nvidia-smi`, `nvidia-smi topo -m`, `dmon`).
 
 ### scripts/gpu/
-Port pretrain/scripts GPU utilities.
+Port pretrain/scripts GPU utilities + the ml/nv env diagnostic.
 
+- `check_env.py` — torch/CUDA env diagnostic (ported from ml/nv `check_version.py`):
+  CUDA available, torch version + build CUDA, cuDNN, NCCL (guarded), per-GPU name +
+  compute capability; defers driver/runtime to `nvidia-smi`/`nvcc`. Also called by
+  `bootstrap/` after install.
 - `gpu_fans.py` — fan speed monitor/control.
 - `gpu_power.py` — power draw monitor / power-cap setter.
 - `gpu_idle_alert.sh` — detect idle GPU(s), trigger alert via `send_email.py`.
@@ -68,7 +71,8 @@ Port pretrain/scripts GPU utilities.
 - `README.md` — usage + how to wire alerts via cron, referencing `.env`.
 
 ### scripts/inference/
-SGLang and vLLM side by side, one set of launchers per framework per topology.
+SGLang and vLLM side by side, **run inside their official Docker images** (not bare-metal
+installs) — avoids polluting the host and pins the sm_120/CUDA 13.0 toolchain to the image.
 
 ```
 inference/
@@ -78,10 +82,17 @@ inference/
 └── README.md
 ```
 
-- `serve_multi_gpu.sh` — tensor parallel across local GPUs.
-- `serve_multi_node.sh` — head-node init addr + nnodes/node-rank.
-- `bench/` — drive each server, record throughput / TTFT / latency, compare frameworks.
-- `README.md` — launch flags per topology, how to point at a model path.
+- Each `serve_*.sh` is a `docker run` wrapper around the framework's official image
+  (`lmsysorg/sglang`, `vllm/vllm-openai`), with the NCCL flags from `bootstrap/`
+  (`--ipc=host --ulimit memlock=-1 …`), `--gpus`, model/HF-cache volume mounts, and the
+  OpenAI-compatible port published.
+- `serve_single_gpu.sh` — pin one GPU via `--gpus '"device=N"'`.
+- `serve_multi_gpu.sh` — tensor parallel across local GPUs (`--tp N`).
+- `serve_multi_node.sh` — multi-node: head-node init addr + nnodes/node-rank, container
+  networked with `--network host`.
+- `bench/` — drive each server over its OpenAI endpoint, record throughput / TTFT /
+  latency, compare frameworks. Can run on host or in image.
+- `README.md` — image tags, `docker run` flags per topology, how to mount a model path.
 
 ### scripts/train/
 miles-style launchers.
@@ -104,10 +115,11 @@ Attention/kernel backends: import + correctness smoke tests, then benchmark.
 
 ## Build sequence
 
-1. **Skeleton pass** — create `scripts/{init,gpu,inference,train,kernel}/`, a README stub
+1. **Skeleton pass** — create `scripts/{bootstrap,gpu,inference,train,kernel}/`, a README stub
    (outline + headers) in each, and the top-level README with the hardware table + module
    index. Commit.
-2. **Fill modules in order**: init → gpu → inference → train → kernel. Each fill ports/writes
+2. **Fill modules in order**: gpu → bootstrap → inference → train → kernel (gpu first
+   since `bootstrap/` reuses `gpu/check_env.py`). Each fill ports/writes
    the scripts and completes the module README.
 
 ## Verification
@@ -121,8 +133,8 @@ Written but **not locally testable** (marked as such in their READMEs):
 - multi-node inference and train (no second node available here).
 - scripts targeting the other machines (6000 Pro, 5090, L40).
 
-`init/` scripts are destructive/system-level (driver, CUDA) — verified by review and
-`check_version.py`, not by re-running installs on the dev box.
+`bootstrap/` scripts are destructive/system-level (driver, CUDA) — verified by review
+and `gpu/check_env.py`, not by re-running installs on the dev box.
 
 ## Out of scope
 
