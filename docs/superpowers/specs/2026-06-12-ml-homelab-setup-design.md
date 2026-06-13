@@ -24,6 +24,7 @@ ml-homelab-setup/
 └── scripts/
     ├── bootstrap/     # driver, CUDA, cuDNN, NCCL, docker installs + version checks
     ├── gpu/           # env check, fans, power, idle alert + cron setup
+    ├── monitoring/    # prometheus + node_exporter + gpu exporter (docker compose)
     ├── inference/     # sglang + vllm: single, multi-gpu, multi-node + bench
     ├── train/         # single-gpu, multi-gpu, multi-node launchers
     └── kernel/        # flashattn, flashinfer, sdpa, sgl-kernel tests + bench
@@ -72,6 +73,17 @@ Port pretrain/scripts GPU utilities + the ml/nv env diagnostic.
 - `setup_crontab.sh` — install idle-alert (and monitors) as cron jobs.
 - `README.md` — usage + how to wire alerts via cron, referencing `.env`.
 
+### scripts/monitoring/
+Prometheus metrics stack, run via Docker Compose.
+
+- `docker-compose.yml` — `prometheus`, `node_exporter` (host CPU/mem/disk/net), and a GPU
+  exporter (`nvidia_smi_exporter`; note DCGM-exporter as the alternative for richer metrics).
+- `prometheus.yml` — scrape config targeting node_exporter + the GPU exporter; supports
+  scraping multiple homelab nodes by IP.
+- `.env.example` — ports, scrape interval, list of node targets.
+- `README.md` — bring-up (`docker compose up -d`), exporter endpoints, example PromQL
+  (GPU util/power/temp, host load), and how to add Grafana later (out of scope for v1).
+
 ### scripts/inference/
 SGLang and vLLM side by side, **run inside their official Docker images** (not bare-metal
 installs) — avoids polluting the host and pins the sm_120/CUDA 13.0 toolchain to the image.
@@ -117,17 +129,18 @@ Attention/kernel backends: import + correctness smoke tests, then benchmark.
 
 ## Build sequence
 
-1. **Skeleton pass** — create `scripts/{bootstrap,gpu,inference,train,kernel}/`, a README stub
+1. **Skeleton pass** — create `scripts/{bootstrap,gpu,monitoring,inference,train,kernel}/`, a README stub
    (outline + headers) in each, and the top-level README with the hardware table + module
    index. Commit.
-2. **Fill modules in order**: gpu → bootstrap → inference → train → kernel (gpu first
-   since `bootstrap/` reuses `gpu/check_env.py`). Each fill ports/writes
+2. **Fill modules in order**: gpu → bootstrap → monitoring → inference → train → kernel
+   (gpu first since `bootstrap/` reuses `gpu/check_env.py`). Each fill ports/writes
    the scripts and completes the module README.
 
 ## Verification
 
 On the current 2× RTX 5060ti box I can run and verify:
 - **gpu/** — nvidia-smi-based utils.
+- **monitoring/** — full compose stack (prometheus + exporters) on this box.
 - **kernel/** — import + correctness smoke tests, benchmark.
 - **inference/** — single-GPU and single-node-multi-GPU (2 GPUs) launch + bench.
 
