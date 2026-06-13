@@ -78,9 +78,9 @@ on docker + multi-GPU. Fix by adding these flags to the container:
 
 ## Multi-node NCCL
 
-Two ways to run it. Both use c10d rendezvous on the head; the expected sum scales to
-`1+2+...+(NNODES*GPUS_PER_NODE)`, and nodes must reach `HEAD_NODE_IP:RDZV_PORT`
-(default 29500). In containers add `--network host`.
+Two ways to run it. Both use static rendezvous with node-rank 0 as the master on the head;
+the expected sum scales to `1+2+...+(NNODES*GPUS_PER_NODE)`, and nodes must reach
+`HEAD_NODE_IP:RDZV_PORT` (default 29500). In containers add `--network host`.
 
 Example below: two nodes, **10.0.0.101** (head) and **10.0.0.244** (worker), 1 GPU each.
 
