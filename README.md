@@ -10,9 +10,7 @@ and some shared instances:
 
 I run [pretrain](https://github.com/gongyisheng/pretrain) experiments heavily on RTX 6000 pro, RTX 5090 and L40S. and 2X 5060ti usually for ci, kernel dev and nccl tests. I host 3 instances at my home and they are connected with ethernet switch.
 
-Sometimes I also do distributed training (eg, multi node RL). I had a lot of fun hosting the homelab, some funny stories like:
-- [electricity bills](https://x.com/Orange41324306/status/2065662526155788380)
-- [electricity outage](https://x.com/Orange41324306/status/2065366056127107575)
+I do open-source during my spare time, I'm a contributor of [sglang](https://github.com/sgl-project/sglang) and [miles](https://github.com/gongyisheng/miles), focus on lora training/inference. I had a lot of fun hosting the homelab, some moments are [here](./docs/diary.md).
 
 ## Hardware fleet
 
