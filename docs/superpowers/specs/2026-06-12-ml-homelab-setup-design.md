@@ -47,7 +47,9 @@ Port the ml/nv runbook into runnable scripts.
   set `CUDA_HOME`/`PATH`/`LD_LIBRARY_PATH`, support version switching via
   `/usr/local/cuda` symlink.
 - `install_cudnn_nccl.sh` — cuDNN + NCCL install.
-- `install_docker.sh` — docker engine + nvidia-container-toolkit.
+- `install_docker.sh` — docker engine, then nvidia-container-toolkit: install the toolkit,
+  register the NVIDIA runtime with Docker (`nvidia-ctk runtime configure --runtime=docker`),
+  restart the daemon, and smoke-test with `docker run --gpus all … nvidia-smi`.
 - Version check after install reuses `scripts/gpu/check_env.py` (no duplication).
 - `run_nccl_test.sh` — docker NCCL multi-GPU sanity check with the known-good flags
   (`--ipc=host --security-opt seccomp=unconfined --ulimit memlock=-1 --ulimit stack=67108864`),
