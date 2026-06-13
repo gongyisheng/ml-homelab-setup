@@ -74,15 +74,16 @@ Port pretrain/scripts GPU utilities + the ml/nv env diagnostic.
 - `README.md` — usage + how to wire alerts via cron, referencing `.env`.
 
 ### scripts/monitoring/
-Prometheus metrics stack, run via Docker Compose.
+Prometheus metrics stack, run via Docker Compose. Configs below are user-provided and are
+the source of truth — reproduce them verbatim, do not invent values. The user runs each
+component as its own compose file (host networking); keep that layout.
 
-- `docker-compose.yml` — `prometheus`, `node_exporter` (host CPU/mem/disk/net), and a GPU
-  exporter (`nvidia_smi_exporter`; note DCGM-exporter as the alternative for richer metrics).
-- `prometheus.yml` — scrape config targeting node_exporter + the GPU exporter; supports
-  scraping multiple homelab nodes by IP.
-- `.env.example` — ports, scrape interval, list of node targets.
-- `README.md` — bring-up (`docker compose up -d`), exporter endpoints, example PromQL
-  (GPU util/power/temp, host load), and how to add Grafana later (out of scope for v1).
+- `prometheus/docker-compose.yml` + `prometheus/prometheus.yml` — Prometheus server (9090).
+- `node-exporter/docker-compose.yml` — host CPU/mem/disk/net (9100).
+- `nvidia-smi-exporter/docker-compose.yml` — GPU metrics via `utkuozdemir/nvidia_gpu_exporter`
+  (9835), needs the NVIDIA docker runtime from `bootstrap/`.
+- `README.md` — bring-up (`docker compose up -d` per dir), exporter endpoints, example
+  PromQL (GPU util/power/temp, host load), and how to add Grafana later (out of scope v1).
 
 Reference config provided by user (node-exporter; smartctl textfile collector removed):
 
@@ -139,6 +140,23 @@ services:
       - /var/log/prometheus:/prometheus
     restart: always
     image: prom/prometheus
+```
+
+GPU exporter `docker-compose.yml` (user-provided; container_name set to
+`nvidia_smi_exporter` per user instruction):
+
+```yaml
+services:
+  nvidia_smi_exporter:
+    image: utkuozdemir/nvidia_gpu_exporter:1.4.1
+    container_name: nvidia_smi_exporter
+    restart: always
+    runtime: nvidia
+    environment:
+      - NVIDIA_VISIBLE_DEVICES=all
+      - NVIDIA_DRIVER_CAPABILITIES=utility
+    ports:
+      - "9835:9835"
 ```
 
 (Further monitoring configs with credentials will be pasted by the user and kept here as
