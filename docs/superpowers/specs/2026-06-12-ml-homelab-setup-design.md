@@ -102,6 +102,26 @@ services:
       - --path.rootfs=/host
 ```
 
+`prometheus.yml` (trimmed to the exporters in scope — node-exporter + GPU exporter; other
+jobs from the user's full config dropped):
+
+```yaml
+global:
+  scrape_interval: 10s
+  external_labels:
+    monitor: 'node'
+scrape_configs:
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+  - job_name: 'node-exporter'
+    static_configs:
+      - targets: ['localhost:9100']
+  - job_name: 'nvidia_smi_exporter'
+    static_configs:
+      - targets: ['localhost:9835']
+```
+
 (Further monitoring configs with credentials will be pasted by the user and kept here as
 the source of truth — do not invent credential values.)
 
