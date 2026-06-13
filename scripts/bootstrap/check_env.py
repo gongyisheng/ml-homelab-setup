@@ -1,15 +1,26 @@
 """Torch / CUDA environment diagnostic.
 
 Reports torch, CUDA, cuDNN, NCCL versions, per-GPU name + compute capability, plus the
-driver version (nvidia-smi) and CUDA toolkit version (nvcc).
+driver version (nvidia-smi) and CUDA toolkit version (nvcc). Output is printed and saved
+to a txt file.
 
-    python3 check_env.py
+    python3 check_env.py                 # saves to check_env.txt next to this script
+    python3 check_env.py /tmp/env.txt    # custom path
 """
 import re
 import shutil
 import subprocess
+import sys
+from pathlib import Path
 
 import torch
+
+_lines = []
+
+
+def out(s):
+    print(s)
+    _lines.append(s)
 
 
 def run(cmd):
@@ -30,12 +41,12 @@ def fmt(v):
     return str(v)
 
 
-print("=== Torch / CUDA stack ===")
-print(f"torch          : {torch.__version__}")
-print(f"cuda available : {torch.cuda.is_available()}")
-print(f"torch cuda     : {fmt(getattr(torch.version, 'cuda', None))}")
-print(f"cudnn enabled  : {torch.backends.cudnn.enabled}")
-print(f"cudnn version  : {torch.backends.cudnn.version()}")
+out("=== Torch / CUDA stack ===")
+out(f"torch          : {torch.__version__}")
+out(f"cuda available : {torch.cuda.is_available()}")
+out(f"torch cuda     : {fmt(getattr(torch.version, 'cuda', None))}")
+out(f"cudnn enabled  : {torch.backends.cudnn.enabled}")
+out(f"cudnn version  : {torch.backends.cudnn.version()}")
 
 nccl_ver = None
 if torch.cuda.is_available():
@@ -43,16 +54,21 @@ if torch.cuda.is_available():
         nccl_ver = torch.cuda.nccl.version()
     except Exception as e:
         nccl_ver = f"unavailable ({type(e).__name__}: {e})"
-print(f"nccl version   : {fmt(nccl_ver)}")
+out(f"nccl version   : {fmt(nccl_ver)}")
 
 if torch.cuda.is_available():
-    print(f"device count   : {torch.cuda.device_count()}")
+    out(f"device count   : {torch.cuda.device_count()}")
     for i in range(torch.cuda.device_count()):
         cc = fmt(torch.cuda.get_device_capability(i))
-        print(f"  gpu {i}        : {torch.cuda.get_device_name(i)} (sm_{cc.replace('.', '')})")
+        out(f"  gpu {i}        : {torch.cuda.get_device_name(i)} (sm_{cc.replace('.', '')})")
+
 driver = run(["nvidia-smi", "--query-gpu=driver_version", "--format=csv,noheader"])
-print(f"driver version : {fmt(driver.splitlines()[0] if driver else None)}")
+out(f"driver version : {fmt(driver.splitlines()[0] if driver else None)}")
 
 nvcc = run(["nvcc", "--version"])
 nvcc_rel = re.search(r"release ([\d.]+)", nvcc).group(1) if nvcc and "release" in nvcc else None
-print(f"nvcc cuda      : {fmt(nvcc_rel)}")
+out(f"nvcc cuda      : {fmt(nvcc_rel)}")
+
+out_path = Path(sys.argv[1]) if len(sys.argv) > 1 else Path(__file__).resolve().parent / "check_env.txt"
+out_path.write_text("\n".join(_lines) + "\n")
+print(f"\nsaved -> {out_path}")

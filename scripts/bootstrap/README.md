@@ -17,8 +17,9 @@ bash install_cuda_container_kit.sh  # nvidia-container-toolkit + runtime + smoke
 
 Each takes env overrides (`CUDA_VERSION`, `CUDA_MAJOR`, `CUDA_DISTRO`, `CUDA_IMAGE`).
 
-`check_env.py` reports the torch/CUDA/cuDNN/NCCL stack and per-GPU compute capability;
-`run_nccl_test.sh` + `test_nccl.py` validate multi-GPU NCCL.
+`check_env.py` reports the torch/CUDA/cuDNN/NCCL stack, per-GPU compute capability, driver
+and nvcc versions, and saves them to `check_env.txt`; `run_nccl_test.sh` + `test_nccl.py`
+validate multi-GPU NCCL.
 
 ## Verify
 
