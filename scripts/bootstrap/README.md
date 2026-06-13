@@ -48,6 +48,16 @@ driver version : 580.126.20
 nvcc cuda      : 13.0
 ```
 
+Example `run_nccl_test.sh` output (2× RTX 5060 Ti, all-reduce sum = 1+2 = 3):
+
+```
+Running NCCL all-reduce on 2 GPU(s).
+[rank 0/2] local 1 -> all_reduce sum 3
+[rank 1/2] local 2 -> all_reduce sum 3
+
+all_reduce sum = 3 (expected 3) -> PASS
+```
+
 ## nvidia-smi diagnostics
 
 | Command                  | Use                                                        |
