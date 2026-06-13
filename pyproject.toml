@@ -6,6 +6,7 @@ requires-python = ">=3.10"
 dependencies = [
     "nvidia-ml-py>=12",  # pynvml bindings for gpu_fans.py / gpu_power.py
     "torch",             # check_env.py, test_nccl.py, train.py, kernel tests
+    "numpy",             # torch tensor<->numpy interop (silences NumPy init warning)
 ]
 
 # Kernel benchmarks. FlashInfer JIT-compiles on first use (needs ninja).

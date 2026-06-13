@@ -116,6 +116,22 @@ NODES="10.0.0.101 10.0.0.244" DRY_RUN=1 bash run_nccl_test_multinode.sh   # prin
 - Requirements: the control instance has passwordless SSH + rsync to every node, uv installed
   on each, and all nodes can reach the head's `RDZV_PORT` (29500).
 
+Example success output (2 nodes × 1 GPU, all-reduce sum = 1+2 = 3):
+
+```
+NCCL test: 2 nodes (head 10.0.0.101), 1 GPU/node, repo /tmp/ml-homelab-setup
+  syncing repo to node 0 (yisheng@10.0.0.101:/tmp/ml-homelab-setup)
+  launching node 0 on yisheng@10.0.0.101
+  syncing repo to node 1 (yisheng@10.0.0.244:/tmp/ml-homelab-setup)
+  launching node 1 on yisheng@10.0.0.244
+[node 1] NCCL all-reduce: 2 nodes x 1 GPU (this is node 1), head 10.0.0.101.
+[node 1] [rank 1/2] local 2 -> all_reduce sum 3
+[node 0] NCCL all-reduce: 2 nodes x 1 GPU (this is node 0), head 10.0.0.101.
+[node 0] [rank 0/2] local 1 -> all_reduce sum 3
+[node 0] all_reduce sum = 3 (expected 3) -> PASS
+All nodes finished.
+```
+
 ## nvidia-smi diagnostics
 
 | Command                  | Use                                                        |

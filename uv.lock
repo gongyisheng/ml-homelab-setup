@@ -498,6 +498,8 @@ name = "ml-homelab-setup"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "numpy", version = "2.2.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.11'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.11'" },
     { name = "nvidia-ml-py" },
     { name = "torch" },
 ]
@@ -512,6 +514,7 @@ kernel = [
 requires-dist = [
     { name = "flashinfer-python", marker = "extra == 'kernel'" },
     { name = "ninja", marker = "extra == 'kernel'" },
+    { name = "numpy" },
     { name = "nvidia-ml-py", specifier = ">=12" },
     { name = "torch", index = "https://download.pytorch.org/whl/cu130" },
 ]
