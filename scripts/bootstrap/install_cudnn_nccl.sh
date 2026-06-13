@@ -11,6 +11,17 @@ set -euo pipefail
 
 CUDA_MAJOR="${CUDA_MAJOR:-13}"
 
+DISTRO="${CUDA_DISTRO:-ubuntu2404}"
+ARCH="${CUDA_ARCH:-x86_64}"
+
+# Ensure the CUDA apt repo is present (makes this script self-sufficient standalone).
+if ! apt-cache policy "cudnn9-cuda-${CUDA_MAJOR}" 2>/dev/null | grep -q developer.download.nvidia.com; then
+    cd /tmp
+    wget -O cuda-keyring.deb \
+        "https://developer.download.nvidia.com/compute/cuda/repos/${DISTRO}/${ARCH}/cuda-keyring_1.1-1_all.deb"
+    sudo dpkg -i cuda-keyring.deb
+fi
+
 sudo apt-get update
 sudo apt-get install -y "cudnn9-cuda-${CUDA_MAJOR}" libnccl2 libnccl-dev
 
