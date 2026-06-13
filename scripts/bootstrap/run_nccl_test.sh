@@ -37,12 +37,19 @@ if [ -n "${HEAD_NODE_IP:-}" ]; then
     GPUS_PER_NODE="${GPUS_PER_NODE:-$(count_gpus)}"
     RDZV_PORT="${RDZV_PORT:-29500}"
     echo "NCCL all-reduce: ${NNODES} nodes x ${GPUS_PER_NODE} GPU (this is node ${NODE_RANK}), head ${HEAD_NODE_IP}."
+    # Keep NCCL off virtual interfaces (docker0, br-*, veth, lo); it otherwise may
+    # pick a docker bridge (e.g. 172.18.0.1) that isn't routable between nodes.
+    # Override NCCL_SOCKET_IFNAME if your real NIC doesn't match the default.
+    export NCCL_SOCKET_IFNAME="${NCCL_SOCKET_IFNAME:-^docker0,br-,veth,lo,virbr0}"
+    # Static rendezvous: node-rank 0 is unconditionally the master and hosts the
+    # store. Avoids the c10d backend's host election, which fails when the head's
+    # hostname resolves to 127.0.1.1 (Ubuntu default) instead of HEAD_NODE_IP.
     exec torchrun \
         --nnodes="$NNODES" \
         --node-rank="$NODE_RANK" \
         --nproc_per_node="$GPUS_PER_NODE" \
-        --rdzv-backend=c10d \
-        --rdzv-endpoint="${HEAD_NODE_IP}:${RDZV_PORT}" \
+        --master-addr="$HEAD_NODE_IP" \
+        --master-port="$RDZV_PORT" \
         "$SCRIPT_DIR/test_nccl.py"
 else
     # --- single node ---
