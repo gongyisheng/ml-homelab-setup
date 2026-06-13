@@ -83,11 +83,12 @@ component as its own compose file (host networking); keep that layout.
 - `nvidia-smi-exporter/docker-compose.yml` — GPU metrics via `utkuozdemir/nvidia_gpu_exporter`
   (9835), needs the NVIDIA docker runtime from `bootstrap/`.
 - `grafana/docker-compose.yml` — Grafana dashboards (3000), Prometheus as datasource.
-- `cloudflared/` — Cloudflare Tunnel exposing Grafana (and exporters as needed) without
-  opening inbound ports. Tunnel token/config is a credential — user provides it, kept here
-  as source of truth; do not invent. README covers `cloudflared tunnel` setup + ingress map.
+- Cloudflare Tunnel — no separate folder; documented in `README.md` only. Exposes
+  Grafana/exporters without inbound ports. Tunnel token/ingress is a credential the user
+  provides; do not invent.
 - `README.md` — bring-up (`docker compose up -d` per dir), exporter endpoints, example
-  PromQL (GPU util/power/temp, host load), Grafana datasource setup, and tunnel bring-up.
+  PromQL (GPU util/power/temp, host load), Grafana datasource setup, and the cloudflared
+  tunnel setup + ingress map.
 
 Reference config provided by user (node-exporter; smartctl textfile collector removed):
 
@@ -180,9 +181,10 @@ services:
     restart: always
 ```
 
-Cloudflare Tunnel (`cloudflared`) fronts Grafana/exporters so they're reachable remotely
-without inbound port forwarding. The tunnel token and ingress config are credentials — the
-user will paste them and they are kept here as the source of truth.
+Cloudflare Tunnel fronts Grafana/exporters so they're reachable remotely without inbound
+port forwarding. It is documented in the monitoring `README.md` (no separate folder). The
+tunnel token and ingress config are credentials — the user will paste them, kept as the
+source of truth.
 
 (Further monitoring configs with credentials will be pasted by the user and kept here as
 the source of truth — do not invent credential values.)
