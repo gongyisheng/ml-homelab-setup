@@ -78,20 +78,22 @@ on docker + multi-GPU. Fix by adding these flags to the container:
 
 ### Multi-node NCCL
 
-`run_nccl_test.sh` also runs across nodes when `HEAD_NODE_IP` is set — launch it on every
-node with a distinct `NODE_RANK` (c10d rendezvous on the head). The expected sum scales to
-`1+2+...+(NNODES*GPUS_PER_NODE)`.
+Two ways to run it. Both use c10d rendezvous on the head; the expected sum scales to
+`1+2+...+(NNODES*GPUS_PER_NODE)`, and nodes must reach `HEAD_NODE_IP:RDZV_PORT`
+(default 29500). In containers add `--network host`.
+
+**1. Per node — log into each instance and run `run_nccl_test.sh`** with `HEAD_NODE_IP`
+set and a distinct `NODE_RANK`:
 
 ```bash
-# head node:
+# on the head node:
 HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 bash run_nccl_test.sh
-# worker node:
+# on the worker node:
 HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 bash run_nccl_test.sh
 ```
 
-Nodes must reach `HEAD_NODE_IP:RDZV_PORT` (default 29500). In containers add `--network host`.
-
-To drive all nodes from one machine, use the orchestrator:
+**2. From a control instance — run `run_nccl_test_multinode.sh` once**, and it SSHes into
+every node for you:
 
 ```bash
 NODES="10.0.0.243 10.0.0.244" GPUS_PER_NODE=1 bash run_nccl_test_multinode.sh
@@ -102,9 +104,8 @@ NODES="..." DRY_RUN=1 bash run_nccl_test_multinode.sh   # print commands without
 - SSHes into each node and runs `uv run bash run_nccl_test.sh`, streaming output prefixed
   `[node N]`, and exits non-zero if any node fails.
 - `SSH_USER`, `REPO_DIR`, `RDZV_PORT` are overridable; `DRY_RUN=1` prints the commands without executing.
-
-Requirements: passwordless SSH to every node, same repo path + uv env on each, and all
-nodes able to reach the head's `RDZV_PORT` (29500).
+- Requirements: the control instance has passwordless SSH to every node, same repo path +
+  uv env on each, and all nodes can reach the head's `RDZV_PORT` (29500).
 
 ## nvidia-smi diagnostics
 
