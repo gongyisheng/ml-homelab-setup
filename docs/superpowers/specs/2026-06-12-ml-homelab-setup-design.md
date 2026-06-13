@@ -84,6 +84,27 @@ Prometheus metrics stack, run via Docker Compose.
 - `README.md` — bring-up (`docker compose up -d`), exporter endpoints, example PromQL
   (GPU util/power/temp, host load), and how to add Grafana later (out of scope for v1).
 
+Reference config provided by user (node-exporter; smartctl textfile collector removed):
+
+```yaml
+version: '3.8'
+
+services:
+  node-exporter:
+    image: quay.io/prometheus/node-exporter:latest
+    container_name: node-exporter
+    restart: always
+    network_mode: "host"
+    pid: "host"
+    volumes:
+      - "/:/host:ro,rslave"
+    command:
+      - --path.rootfs=/host
+```
+
+(Further monitoring configs with credentials will be pasted by the user and kept here as
+the source of truth — do not invent credential values.)
+
 ### scripts/inference/
 SGLang and vLLM side by side, **run inside their official Docker images** (not bare-metal
 installs) — avoids polluting the host and pins the sm_120/CUDA 13.0 toolchain to the image.
