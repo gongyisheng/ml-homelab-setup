@@ -13,7 +13,7 @@ or Megatron entry to use it for real.
 |---------------------|----------------------------------------------------------------|
 | `run_single_gpu.sh` | one GPU (`GPU=N`)                                               |
 | `run_multi_gpu.sh`  | single node, all/`NPROC` GPUs via `torchrun` (DDP)             |
-| `run_multi_node.sh` | multi-node `torchrun` with c10d rendezvous                     |
+| `run_multi_node.sh` | multi-node `torchrun`, static rendezvous (node-rank 0 master)  |
 
 ## Examples
 
@@ -26,9 +26,9 @@ GPU=1 uv run bash run_single_gpu.sh --steps 100
 # single-node multi-GPU
 NPROC=2 uv run bash run_multi_gpu.sh --steps 200
 
-# multi-node: run on each node with its rank
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=2 bash run_multi_node.sh
-HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=2 bash run_multi_node.sh
+# multi-node: run on each node with its rank (HEAD_NODE_IP = node-rank 0's LAN IP)
+HEAD_NODE_IP=10.0.0.244 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 uv run bash run_multi_node.sh
+HEAD_NODE_IP=10.0.0.244 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 uv run bash run_multi_node.sh
 
 # bring your own training script
 TRAIN_SCRIPT=/path/to/train_lora.py GPU=1 bash run_single_gpu.sh --config cfg.yaml
@@ -36,6 +36,41 @@ TRAIN_SCRIPT=/path/to/train_lora.py GPU=1 bash run_single_gpu.sh --config cfg.ya
 
 ## Verification status
 
-- single-GPU and the `torchrun` launcher path: verified on a 5060 Ti.
-- 2-GPU DDP all-reduce and multi-node: written, run when both GPUs / a second node are
-  free (one GPU is currently training).
+All three topologies verified 2026-06-12 on torch 2.12.0+cu130, NCCL 2.29.7+cuda13.2.
+
+| Topology         | Hardware                                          | Result |
+|------------------|---------------------------------------------------|--------|
+| single-GPU       | RTX 5060 Ti (pc3 / 10.0.0.244)                    | ✅ pass |
+| multi-GPU (DDP)  | 2× RTX 5060 Ti (pc3 / 10.0.0.244)                 | ✅ pass |
+| multi-node (1 GPU each) | pc3 (RTX 5060 Ti) + pc2 (RTX PRO 6000 / 10.0.0.101) | ✅ pass |
+
+Sample output (loss decreasing, rank-0 checkpoint written):
+
+```text
+# single-node multi-GPU
+$ NPROC=2 uv run bash run_multi_gpu.sh --steps 15
+step    0 | loss 7.7912
+step   10 | loss 7.7310
+step   14 | loss 7.7165
+saved checkpoint -> /tmp/homelab-train/ckpt.pt
+
+# multi-node, 1 GPU per node (head, NODE_RANK=0)
+$ HEAD_NODE_IP=10.0.0.244 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 uv run bash run_multi_node.sh --steps 20
+NCCL version 2.29.7+cuda13.2
+step    0 | loss 7.7823
+step   10 | loss 7.7201
+step   19 | loss 7.6962
+saved checkpoint -> /tmp/homelab-train/ckpt.pt
+```
+
+### Multi-node notes
+
+- **Static rendezvous, not c10d.** c10d auto-elects the store host by resolving the
+  hostname, which maps to `127.0.1.1` on stock Ubuntu — so no node ever hosts the store and
+  every rank (including rank 0) hangs 60s as a TCP client, then dies. Static rendezvous
+  makes node-rank 0 the master unconditionally.
+- **NCCL is pinned off docker/virtual bridges** (`NCCL_SOCKET_IFNAME=^docker,br-,lo,veth,virbr`).
+  An UP `br-*` bridge on the same `172.18.0.0/16` subnet exists on every node; left to
+  auto-select, NCCL can pick that unroutable bridge and hang the all-reduce.
+- Run launchers under `uv run` (or an activated `.venv`); over a non-interactive SSH shell
+  also `export PATH=$HOME/.local/bin:$PATH` so `uv` resolves.

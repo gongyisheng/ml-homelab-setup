@@ -49,10 +49,13 @@ def main():
     ddp = "RANK" in os.environ and int(os.environ.get("WORLD_SIZE", "1")) > 1
     local_rank = int(os.environ.get("LOCAL_RANK", "0"))
     rank = int(os.environ.get("RANK", "0"))
-    if ddp:
-        dist.init_process_group(backend="nccl")
     device = torch.device(f"cuda:{local_rank}" if torch.cuda.is_available() else "cpu")
-    torch.cuda.set_device(local_rank) if torch.cuda.is_available() else None
+    if torch.cuda.is_available():
+        torch.cuda.set_device(local_rank)
+    if ddp:
+        # device_id binds this rank's GPU at init (eager NCCL comm setup, mutes the
+        # barrier() device-guess warning).
+        dist.init_process_group(backend="nccl", device_id=device if device.type == "cuda" else None)
 
     model = TinyGPT(args.vocab, args.d_model, args.n_layer, args.n_head, args.seq_len).to(device)
     if ddp:

@@ -2,18 +2,27 @@
 
 LLM/ML research homelab setup scripts, focus on x86 + NVIDIA GPU.
 
-Consolidates setup, monitoring, inference, training, and kernel-benchmark scripts for a
-heterogeneous NVIDIA fleet, parameterized across single-GPU, single-node-multi-GPU, and
-multi-node topologies.
+Currently I have following dedicate hardwares: 
+1 RTX 6000 Pro Blackwell, 1 RTX 5090 (rent from my friend), 1 2X RTX 5060ti, 1 A10G (company), 1 L40S (company)
+
+and some shared instances:
+1 4XL40S (company, but shared, cannot use for a long time), and some 8XH200/B200 provided by sglang community shared by all developers.
+
+I run [pretrain](https://github.com/gongyisheng/pretrain) experiments heavily on RTX 6000 pro, RTX 5090 and L40S. and 2X 5060ti usually for ci, kernel dev and nccl tests. I host 3 instances at my home and they are connected with ethernet switch.
+
+Sometimes I also do distributed training (eg, multi node RL). I had a lot of fun hosting the homelab, some funny stories like:
+- [electricity bills](https://x.com/Orange41324306/status/2065662526155788380)
+- [electricity outage](https://x.com/Orange41324306/status/2065366056127107575)
 
 ## Hardware fleet
 
-| Machine         | GPU(s)        | Arch      | sm     | CUDA      |
-|-----------------|---------------|-----------|--------|-----------|
-| workstation     | RTX 6000 Pro  | Blackwell | sm_120 | 13.0+     |
-| workstation     | RTX 5090      | Blackwell | sm_120 | 13.0+     |
-| dev box         | 2× RTX 5060 Ti| Blackwell | sm_120 | 13.0+     |
-| server          | L40           | Ada       | sm_89  | 12.x      |
+| GPU(s)        | Arch      | sm     | CUDA      |
+|---------------|-----------|--------|-----------|
+| RTX 6000 Pro  | Blackwell | sm_120 | 13.0+     |
+| RTX 5090      | Blackwell | sm_120 | 13.0+     |
+| 2× RTX 5060 Ti| Blackwell | sm_120 | 13.0+     |
+| A10G          | Ampere    | sm_86  | 12.x      |
+| L40S          | Ada       | sm_89  | 12.x      |
 
 sm_120 (Blackwell) requires **CUDA 13.0+**. This drives build flags and wheel selection
 across the kernel and inference modules.
