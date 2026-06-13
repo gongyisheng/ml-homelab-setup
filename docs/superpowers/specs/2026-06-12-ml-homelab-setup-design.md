@@ -122,6 +122,25 @@ scrape_configs:
       - targets: ['localhost:9835']
 ```
 
+Prometheus `docker-compose.yml` (user-provided):
+
+```yaml
+version: '3'
+services:
+  prometheus:
+    container_name: prometheus
+    network_mode: host
+    pid: host
+    user: "0"
+    ports:
+      - 9090:9090
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml
+      - /var/log/prometheus:/prometheus
+    restart: always
+    image: prom/prometheus
+```
+
 (Further monitoring configs with credentials will be pasted by the user and kept here as
 the source of truth — do not invent credential values.)
 
