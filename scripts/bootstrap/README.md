@@ -84,7 +84,7 @@ Two ways to run it. Both use c10d rendezvous on the head; the expected sum scale
 
 Example below: two nodes, **10.0.0.243** (head) and **10.0.0.244** (worker), 1 GPU each.
 
-### Case 1: per node
+### Run on each node
 
 Log into each instance and run `run_nccl_test.sh` with `HEAD_NODE_IP` set and a distinct
 `NODE_RANK`:
@@ -96,7 +96,7 @@ HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=0 GPUS_PER_NODE=1 bash run_nccl_test.
 HEAD_NODE_IP=10.0.0.243 NNODES=2 NODE_RANK=1 GPUS_PER_NODE=1 bash run_nccl_test.sh
 ```
 
-### Case 2: control instance
+### Run from a control instance
 
 From one box with SSH access to both nodes, run `run_nccl_test_multinode.sh` once and it
 SSHes into every node for you:
